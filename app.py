@@ -21,6 +21,7 @@ def load_scenarios():
 st.caption("Synthetic 25-day holdout · Four policies with validation-tuned thresholds")
 st.sidebar.header("Scenario")
 capacity = st.sidebar.slider("Maximum reviews per day", 0, 250, 100, 5)
+st.sidebar.caption("Try 10, 15, 20, or 25 slots to see the ranking tradeoff when the queue fills.")
 fee = st.sidebar.slider("Verification cost per transaction ($)", 0.0, 8.0, 0.75, 0.25)
 effectiveness = st.sidebar.slider("Fraud dollars prevented by verification (%)", 0, 100, 65, 5)
 friction = st.sidebar.slider("Extra cost per legitimate challenge ($)", 0.0, 100.0, 2.0, 0.5)

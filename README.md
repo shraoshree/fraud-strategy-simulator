@@ -2,7 +2,9 @@
 
 [Open the live dashboard](https://shraoshree-fraud-strategy.streamlit.app/)
 
-**At 100 review slots per day, tiered verification is cheaper below about $3.44 per legitimate challenge. Above $3.44, score-only review is cheaper.** At the $2 baseline, tiered review with verification saves an estimated **$1,332** versus score-only review, while raising legitimate challenges from **2.47 to 8.56 per 1,000**. The paired 95% bootstrap range is **−$59 to $2,805**. Dollar and probability ranking tie at this capacity because eligible reviews peak at 39 per day.
+**Verification drives the savings. Pilot it to measure whether the value of avoided fraud justifies the customer friction.** In the 100-slot reference scenario, the break-even cost is **$3.44 per legitimate challenge**.
+
+At the $2 baseline, tiered verification saves an estimated **$1,332** over score-only review and raises legitimate challenges from **2.47 to 8.56 per 1,000**. The paired 95% bootstrap interval is **−$59 to $2,805**. Both rankings produce the same actions in this reference scenario because eligible reviews peak at 39 per day.
 
 ![Estimated cost versus legitimate challenges at several daily review capacities](results/friction_tradeoff.png)
 
@@ -30,11 +32,22 @@ The app uses committed aggregate scenario results and starts without model train
 | Monitor outcomes | [monitoring.sql](sql/monitoring.sql), [daily results](results/daily_monitoring.csv) | Track review and verification volume, alert precision and legitimate challenge rate after fraud labels mature. |
 | Plan a pilot | [Decision memo](DECISION_MEMO.md), [sample-size calculator](pilot_power.py) | Set guardrails, sample size and stopping rules before launch. |
 
-At 25 review slots per day, probability ranking led dollar ranking by about **$31**. This backtest gives little evidence that dollar ranking improves decisions. At 100 slots, the modeled lift over score-only review comes from adding verification to the same review queue.
+### What changes when capacity actually binds
+
+Each limit below is reached on at least one day for both tiered policies. Thresholds stay fixed so the comparison isolates the effect of changing review capacity. The ranking winner changes, and the cost differences between the two tiered policies are small.
+
+| Daily review slots | Lower-cost tiered ranking | Average daily reviews | Estimated cost advantage over the other ranking |
+|---:|---|---:|---:|
+| 10 | Estimated dollars | 9.80 | $55 |
+| 15 | Estimated dollars | 13.84 | $192 |
+| 20 | Fraud probability | 16.56 | $54 |
+| 25 | Fraud probability | 17.48 | $31 |
+
+[View estimated cost by review capacity](results/capacity.png).
 
 ### Calibration under drift
 
-In the highest-scoring logistic regression decile, mean prediction and observed fraud moved from **0.68% vs. 0.71%** in validation to **0.76% vs. 1.14%** in holdout. Holdout average precision was **0.167** for logistic regression and **0.019** for histogram gradient boosting. The deciles are formed independently in each split. The divergence matters because dollar ranking multiplies risk by transaction amount.
+In the highest-scoring logistic regression decile, mean prediction and observed fraud moved from **0.68% vs. 0.71%** in validation to **0.76% vs. 1.14%** in holdout. Holdout average precision was **0.167** for logistic regression and **0.054** for histogram gradient boosting, up from 0.019 before regularization. The boosted model used a 0.05 learning rate, larger minimum leaves, and L2 regularization. The best tree size and iteration budget were selected from three configurations on validation average precision. Training contained 118 positives, which limits the evidence for rare-event tree splits. [See the tuning results](results/metrics.json). The deciles are formed independently in each split. The divergence matters because dollar ranking multiplies risk by transaction amount.
 
 ### Cost and uncertainty
 

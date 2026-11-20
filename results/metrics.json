@@ -12,13 +12,31 @@
     "Tiered dollars": [
       0.02,
       0.01
-    ],
-    "Rules only": [
-      1.0,
-      1.0
     ]
   },
   "capacity": 100,
+  "boosting_validation": {
+    "rounds": 75,
+    "max_leaf_nodes": 5,
+    "training_fraud_cases": 118,
+    "validation_trials": [
+      {
+        "average_precision": 0.01495424838732324,
+        "rounds": 25,
+        "max_leaf_nodes": 3
+      },
+      {
+        "average_precision": 0.02128866854673273,
+        "rounds": 50,
+        "max_leaf_nodes": 3
+      },
+      {
+        "average_precision": 0.028761695223209895,
+        "rounds": 75,
+        "max_leaf_nodes": 5
+      }
+    ]
+  },
   "holdout_transactions": 152259,
   "holdout_fraud_cases": 226,
   "holdout_fraud_rate": 0.0014843129141791289

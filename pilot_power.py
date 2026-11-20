@@ -1,20 +1,24 @@
-"""Per-arm normal approximation for a two-sided comparison of proportions."""
+"""Plan an equally allocated pilot powered on fraud loss basis points."""
 
-from math import ceil, sqrt
+from math import ceil
 from statistics import NormalDist
 
 
-def sample_size_per_arm(control_rate, treatment_rate, alpha=0.05, power=0.80):
-    pooled = (control_rate + treatment_rate) / 2
-    critical = NormalDist().inv_cdf(1 - alpha / 2)
-    power_z = NormalDist().inv_cdf(power)
-    null_sd = sqrt(2 * pooled * (1 - pooled))
-    alternative_sd = sqrt(
-        control_rate * (1 - control_rate) + treatment_rate * (1 - treatment_rate)
-    )
-    return ceil(((critical * null_sd + power_z * alternative_sd)
-                 / abs(control_rate - treatment_rate)) ** 2)
+def sample_size_per_arm(mean_spend, residual_sd, detectable_bps, alpha=0.05, power=0.80):
+    """Use card-level residual SD from shadow data for the ratio outcome.
+
+    A residual is net fraud loss minus baseline loss per dollar times spend,
+    computed per randomized card over the planned measurement window.
+    """
+    if min(mean_spend, residual_sd, detectable_bps) <= 0:
+        raise ValueError("Spend, residual standard deviation, and effect size must be positive.")
+    if not 0 < alpha < 1 or not 0.5 < power < 1:
+        raise ValueError("Use alpha in (0, 1) and power in (0.5, 1).")
+    normal = NormalDist()
+    critical = normal.inv_cdf(1 - alpha / 2)
+    detectable_dollars = mean_spend * detectable_bps / 10_000
+    return ceil(2 * ((critical + normal.inv_cdf(power)) * residual_sd / detectable_dollars) ** 2)
 
 
 if __name__ == "__main__":
-    print(f"{sample_size_per_arm(0.001, 0.0008):,} transactions per arm before design effect")
+    print(f"{sample_size_per_arm(500, 5, 2):,} eligible cards per arm (illustrative)")

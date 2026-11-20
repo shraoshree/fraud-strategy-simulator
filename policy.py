@@ -17,9 +17,12 @@ class Costs:
     verification_effectiveness: float = 0.65
 
 
-def decisions(scored, policy, capacity, review_threshold, verify_threshold):
+def decisions(scored, policy, capacity, review_threshold=None, verify_threshold=None):
     """Rank each day's eligible alerts and route capacity overflow explicitly."""
-    if capacity < 0 or not 0 <= verify_threshold <= review_threshold <= 1:
+    if capacity < 0 or (policy != "Rules only" and (
+        review_threshold is None or verify_threshold is None
+        or not 0 <= verify_threshold <= review_threshold <= 1
+    )):
         raise ValueError("Use nonnegative capacity and ordered thresholds in [0, 1].")
     if policy not in POLICIES:
         raise ValueError(f"Unknown policy: {policy}")
@@ -27,13 +30,14 @@ def decisions(scored, policy, capacity, review_threshold, verify_threshold):
     ranked = scored.copy()
     ranked["action"] = "approve"
     ranked["priority"] = ranked["risk"]
-    eligible = ranked["risk"] >= review_threshold
     if policy == "Rules only":
         eligible = (
             ((ranked["channel"] == "online") & (ranked["amount"] >= 150))
             | (ranked["prior_hour_count"] >= 2)
         )
         ranked["priority"] = ranked["amount"]
+    else:
+        eligible = ranked["risk"] >= review_threshold
     if policy.startswith("Tiered"):
         ranked.loc[ranked["risk"] >= verify_threshold, "action"] = "verify"
     if policy == "Tiered dollars":
@@ -84,7 +88,7 @@ def evaluate(actions, costs):
 def compare(scored, capacity, thresholds, costs):
     return pd.DataFrame([
         {"policy": policy, **evaluate(
-            decisions(scored, policy, capacity, *thresholds[policy]), costs
+            decisions(scored, policy, capacity, *thresholds.get(policy, ())), costs
         )}
         for policy in POLICIES
     ]).sort_values("total_cost", ignore_index=True)

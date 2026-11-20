@@ -79,20 +79,28 @@ def score_models(features):
     validation = frame.loc[(frame["day"] >= days[50]) & (frame["day"] < days[65])].copy()
     holdout = frame.loc[frame["day"] >= days[65]].copy()
     model_rows, calibration = [], []
-    for name, estimator in [
-        ("Logistic regression", LogisticRegression(max_iter=500)),
-        ("HistGradientBoosting", HistGradientBoostingClassifier(
-            max_iter=150, max_leaf_nodes=15, min_samples_leaf=100, random_state=42
-        )),
-    ]:
-        transform = ColumnTransformer([
-            ("numbers", make_pipeline(SimpleImputer(strategy="median", add_indicator=True),
-                                      StandardScaler()), NUMERIC),
-            ("categories", OneHotEncoder(handle_unknown="ignore", sparse_output=False), CATEGORICAL),
-        ])
-        model = make_pipeline(transform, estimator).fit(train[FEATURES], train["is_fraud"])
-        for label, split in [("validation", validation), ("holdout", holdout)]:
-            risk = model.predict_proba(split[FEATURES])[:, 1]
+    transform = ColumnTransformer([
+        ("numbers", make_pipeline(SimpleImputer(strategy="median", add_indicator=True),
+                                  StandardScaler()), NUMERIC),
+        ("categories", OneHotEncoder(handle_unknown="ignore", sparse_output=False), CATEGORICAL),
+    ])
+    train_x = transform.fit_transform(train[FEATURES])
+    validation_x = transform.transform(validation[FEATURES])
+    holdout_x = transform.transform(holdout[FEATURES])
+    train_y = train["is_fraud"]
+    boost_trials = []
+    for rounds, leaves in [(25, 3), (50, 3), (75, 5)]:
+        estimator = HistGradientBoostingClassifier(
+            max_iter=rounds, max_leaf_nodes=leaves, learning_rate=0.05,
+            min_samples_leaf=250, l2_regularization=10, early_stopping=False, random_state=42,
+        ).fit(train_x, train_y)
+        ap = average_precision_score(validation["is_fraud"], estimator.predict_proba(validation_x)[:, 1])
+        boost_trials.append((ap, rounds, leaves, estimator))
+    _, rounds, leaves, boosted = max(boost_trials, key=lambda trial: trial[0])
+    logit = LogisticRegression(max_iter=500).fit(train_x, train_y)
+    for name, model in [("Logistic regression", logit), ("HistGradientBoosting", boosted)]:
+        for label, split, design in [("validation", validation, validation_x), ("holdout", holdout, holdout_x)]:
+            risk = model.predict_proba(design)[:, 1]
             split[name] = risk
             model_rows.append({
                 "model": name, "split": label, "fraud_rate": split["is_fraud"].mean(),
@@ -107,7 +115,11 @@ def score_models(features):
                     "mean_prediction": group["risk"].mean(), "observed_fraud_rate": group["is_fraud"].mean(),
                     "fraud_cases": int(group["is_fraud"].sum()),
                 })
-    return validation, holdout, pd.DataFrame(model_rows), pd.DataFrame(calibration)
+    return validation, holdout, pd.DataFrame(model_rows), pd.DataFrame(calibration), {
+        "rounds": rounds, "max_leaf_nodes": leaves, "training_fraud_cases": int(train_y.sum()),
+        "validation_trials": [dict(average_precision=ap, rounds=r, max_leaf_nodes=l)
+                              for ap, r, l, _ in boost_trials],
+    }
 
 
 def tune_thresholds(validation, costs):
@@ -122,7 +134,6 @@ def tune_thresholds(validation, costs):
         best[policy] = min(candidates, key=lambda pair: evaluate(
             decisions(validation, policy, BASE_CAPACITY, *pair), costs
         )["total_cost"])
-    best["Rules only"] = (1.0, 1.0)
     return best
 
 
@@ -161,7 +172,7 @@ def save_chart(frame, x, y, xlabel, path, *, usage=False):
 def main():
     RESULTS.mkdir(exist_ok=True)
     features, segments = sql_analysis(synthetic_transactions())
-    validation, holdout, models, calibration = score_models(features)
+    validation, holdout, models, calibration, boost_details = score_models(features)
     model = models.loc[models["split"].eq("validation")].sort_values(
         "average_precision", ascending=False
     ).iloc[0]["model"]
@@ -171,10 +182,10 @@ def main():
     thresholds = tune_thresholds(validation, costs)
     comparison = pd.concat([
         compare(holdout, capacity, thresholds, costs).assign(capacity=capacity)
-        for capacity in (25, 50, 100)
+        for capacity in (10, 15, 20, 25, BASE_CAPACITY)
     ], ignore_index=True)
     actions = {
-        policy: decisions(holdout, policy, BASE_CAPACITY, *thresholds[policy]) for policy in POLICIES
+        policy: decisions(holdout, policy, BASE_CAPACITY, *thresholds.get(policy, ())) for policy in POLICIES
     }
     actions["Matched probability"] = decisions(
         holdout, "Tiered probability", BASE_CAPACITY, *thresholds["Tiered dollars"]
@@ -203,6 +214,7 @@ def main():
         report.round(8).to_csv(RESULTS / f"{name}.csv", index=False)
     metrics = {
         "selected_model": model, "thresholds": thresholds, "capacity": BASE_CAPACITY,
+        "boosting_validation": boost_details,
         "holdout_transactions": len(holdout), "holdout_fraud_cases": int(holdout["is_fraud"].sum()),
         "holdout_fraud_rate": holdout["is_fraud"].mean(),
     }
@@ -212,8 +224,9 @@ def main():
         for capacity in range(0, 251, 5)
     ], ignore_index=True)
     scenarios.round(8).to_csv(RESULTS / "dashboard_scenarios.csv", index=False)
-    save_chart(comparison, "capacity", "total_cost", "Maximum reviews per day", RESULTS / "capacity.png")
-    save_chart(comparison, "legit_challenges_per_1000", "total_cost",
+    binding = comparison.loc[comparison["capacity"].ne(BASE_CAPACITY)]
+    save_chart(binding, "capacity", "total_cost", "Maximum reviews per day", RESULTS / "capacity.png")
+    save_chart(binding, "legit_challenges_per_1000", "total_cost",
                "Legitimate challenges per 1,000 (labels show daily capacity)",
                RESULTS / "friction_tradeoff.png", usage=True)
     print(baseline.round(3).to_string(index=False))

@@ -19,23 +19,23 @@ Logistic regression,holdout,7,15226,0.00039304,0.00032839,5
 Logistic regression,holdout,8,15226,0.00065077,0.00072245,11
 Logistic regression,holdout,9,15226,0.0012225,0.00137922,21
 Logistic regression,holdout,10,15226,0.0075537,0.01142782,174
-HistGradientBoosting,validation,1,9131,9.45e-05,0.0006571,6
-HistGradientBoosting,validation,2,9131,0.0001156,0.00021903,2
-HistGradientBoosting,validation,3,9131,0.00011888,0.00021903,2
-HistGradientBoosting,validation,4,9131,0.00013932,0.00032855,3
-HistGradientBoosting,validation,5,9131,0.00014683,0.00032855,3
-HistGradientBoosting,validation,6,9130,0.00019208,0.0007667,7
-HistGradientBoosting,validation,7,9131,0.00034617,0.00032855,3
-HistGradientBoosting,validation,8,9131,0.00049686,0.00076662,7
-HistGradientBoosting,validation,9,9131,0.00099327,0.00153324,14
-HistGradientBoosting,validation,10,9131,0.00930436,0.00558537,51
-HistGradientBoosting,holdout,1,15226,9.476e-05,0.00059109,9
-HistGradientBoosting,holdout,2,15226,0.00011562,0.00032839,5
-HistGradientBoosting,holdout,3,15226,0.00011901,0.00045974,7
-HistGradientBoosting,holdout,4,15226,0.00013953,6.568e-05,1
-HistGradientBoosting,holdout,5,15226,0.00014684,0.00019703,3
-HistGradientBoosting,holdout,6,15225,0.00019215,0.0010509,16
-HistGradientBoosting,holdout,7,15226,0.00034509,0.00078813,12
-HistGradientBoosting,holdout,8,15226,0.00049281,0.00131354,20
-HistGradientBoosting,holdout,9,15226,0.00099046,0.00091948,14
-HistGradientBoosting,holdout,10,15226,0.00958319,0.00912912,139
+HistGradientBoosting,validation,1,9131,0.00014045,0.00010952,1
+HistGradientBoosting,validation,2,9131,0.00014045,0.00021903,2
+HistGradientBoosting,validation,3,9131,0.00016212,0.00043807,4
+HistGradientBoosting,validation,4,9131,0.00018359,0.00043807,4
+HistGradientBoosting,validation,5,9131,0.00019237,0.00054759,5
+HistGradientBoosting,validation,6,9130,0.00026647,0.00021906,2
+HistGradientBoosting,validation,7,9131,0.00039908,0.0,0
+HistGradientBoosting,validation,8,9131,0.00057243,0.00043807,4
+HistGradientBoosting,validation,9,9131,0.00108727,0.00120469,11
+HistGradientBoosting,validation,10,9131,0.00635056,0.00711861,65
+HistGradientBoosting,holdout,1,15226,0.00014045,0.00026271,4
+HistGradientBoosting,holdout,2,15226,0.00014045,0.00013135,2
+HistGradientBoosting,holdout,3,15226,0.00016185,0.00013135,2
+HistGradientBoosting,holdout,4,15226,0.00018362,0.00052542,8
+HistGradientBoosting,holdout,5,15226,0.00019213,0.00032839,5
+HistGradientBoosting,holdout,6,15225,0.00026531,0.00026273,4
+HistGradientBoosting,holdout,7,15226,0.00039722,0.00059109,9
+HistGradientBoosting,holdout,8,15226,0.000569,0.00052542,8
+HistGradientBoosting,holdout,9,15226,0.00108895,0.00177328,27
+HistGradientBoosting,holdout,10,15226,0.00641077,0.01031131,157
