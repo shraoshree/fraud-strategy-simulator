@@ -7,8 +7,8 @@ from pipeline import bootstrap, sql_analysis
 from policy import Costs
 
 
-class AnalysisTests(unittest.TestCase):
-    def test_card_history_features_exclude_current_and_stale_transactions(self):
+class SqlFeatureTests(unittest.TestCase):
+    def setUp(self):
         transactions = pd.DataFrame({
             "transaction_id": [1, 2, 3, 4, 5],
             "card_id": [1, 1, 1, 1, 2],
@@ -20,13 +20,20 @@ class AnalysisTests(unittest.TestCase):
             "amount": [100, 20, 60, 40, 500],
             "is_fraud": [0] * 5,
         })
-        features, _ = sql_analysis(transactions)
-        self.assertEqual(features["new_category"].tolist(), [1, 1, 0, 1, 1])
+        self.features, _ = sql_analysis(transactions)
+
+    def test_new_category_uses_only_prior_transactions_on_same_card(self):
+        self.assertEqual(self.features["new_category"].tolist(), [1, 1, 0, 1, 1])
+
+    def test_thirty_day_average_excludes_current_and_stale_transactions(self):
+        features = self.features
         self.assertEqual(features.loc[2:3, "avg_amount_30d"].tolist(), [20, 20])
         self.assertEqual(features.loc[2:3, "amount_to_30d_avg"].tolist(), [3, 2])
         self.assertEqual(features.loc[2:3, "seconds_since_prior"].tolist(), [2592000, 2592000])
         self.assertTrue(pd.isna(features.loc[4, "avg_amount_30d"]))
 
+
+class AnalysisTests(unittest.TestCase):
     def test_day_bootstrap_pairs_policies(self):
         approved = pd.DataFrame({
             "day": ["2025-01-01", "2025-01-02"], "is_fraud": [1, 1],
