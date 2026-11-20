@@ -1,51 +1,39 @@
 # Credit Card Fraud Strategy Simulator
 
-**Recommendation for the simulated portfolio:** At 100 manual reviews per day, prioritize high-risk transactions by estimated fraud dollars and use verification for eligible overflow. Estimated cost fell from **$201,047 to $122,971 (38.8%)** versus rules alone over 25 days. Compared with a score-only policy, the recommended strategy challenged about **76 versus 23 legitimate transactions per 1,000**.
+**At 100 review slots per day, tiered verification is cheaper below about $3.44 per legitimate challenge. Above $3.44, score-only review is cheaper.** At the $2 baseline, tiered review with verification saves an estimated **$1,332** versus score-only review, while raising legitimate challenges from **2.47 to 8.56 per 1,000**. The paired 95% bootstrap range is **−$59 to $2,805**. Dollar and probability ranking tie at this capacity because eligible reviews peak at 39 per day.
 
-![Estimated cost for each policy at 50, 100, and 200 reviews per day](results/capacity.png)
+![Estimated cost versus legitimate challenges at several daily review capacities](results/friction_tradeoff.png)
 
-This independent portfolio project uses synthetic transactions and assumed intervention costs and effectiveness.
+The synthetic holdout contains **226 fraud cases in 152,259 transactions (0.148%)**. The generator targets a low-prevalence scenario and increases the incident rate in the holdout. These are scenario assumptions. Actual incidence, verification yield, and friction tolerance depend on the portfolio.
 
-## Run locally
+## Run the dashboard
 
-Use Python 3.11 or 3.12. On Windows PowerShell, activate the environment with `.venv\Scripts\Activate.ps1`.
+Use Python 3.11 or 3.12.
 
 ```sh
-python -m venv .venv
-source .venv/bin/activate
 python -m pip install -r requirements.txt
-python pipeline.py
-python -m unittest discover -s tests -v
 python -m streamlit run app.py
 ```
 
-The pipeline regenerates the sample outputs in `results/`. The dashboard uses the locally generated `scored.csv` and lets you vary daily review capacity, verification cost and effectiveness, and the cost of customer friction.
+The app uses committed aggregate scenario results and starts without model training or credentials. To regenerate the results from the fixed seed, run `python pipeline.py`. Run the tests with `python -m unittest discover -s tests -v`.
 
-## Follow the workflow
+## Follow the analysis
 
-| Step | Open | What to look for |
+| Step | Files | What to look for |
 |---|---|---|
-| 1. Generate transactions | [pipeline.py](pipeline.py) | A fixed seed generates 90 days of fictional card transactions, including bursts on the same card. A higher simulated incident rate starts on day 66. |
-| 2. Analyze in SQL | [segments.sql](sql/segments.sql) and [features.sql](sql/features.sql) | Compare fraud rate and dollars by channel and category. Count previous transactions on a card within one hour, excluding the current timestamp. |
-| 3. Estimate risk | [pipeline.py](pipeline.py) | Fit logistic regression on days 1–50. Choose two thresholds using days 51–65 and evaluate on days 66–90. |
-| 4. Compare decisions | [policy.py](policy.py) | Apply four policies on the same holdout, each with the same daily review cap. |
-| 5. Read the recommendation | [Decision memo](DECISION_MEMO.md) | See when lower losses justify extra friction and what to validate before a pilot. |
-| 6. Change one assumption | [app.py](app.py) | Set the extra cost per legitimate challenge to $20 at 100 reviews per day and see which policy wins. |
+| Generate data | [pipeline.py](pipeline.py) | 90 days of transactions, low fraud incidence and a shift on day 66. |
+| Build SQL features | [features.sql](sql/features.sql) | Prior-hour activity, spend relative to a 30-day card average, time since the previous transaction and first observed category. Same-second events are excluded from history. |
+| Compare models | [model results](results/model_comparison.csv), [calibration](results/calibration.csv) | Days 1–30 warm up history, 31–50 train, 51–65 select model and thresholds, and 66–90 evaluate. Logistic regression won on validation average precision. |
+| Compare policies | [policy.py](policy.py), [policy results](results/policy_comparison.csv), [bootstrap](results/bootstrap.csv) | Each model-based policy tunes its thresholds independently on validation. Tiered probability is the score-plus-verification baseline. A matched-threshold comparison isolates the effect of ranking. |
+| Monitor outcomes | [monitoring.sql](sql/monitoring.sql), [daily results](results/daily_monitoring.csv) | Track review and verification volume, alert precision and legitimate challenge rate after fraud labels mature. |
+| Plan a pilot | [Decision memo](DECISION_MEMO.md), [sample-size calculator](pilot_power.py) | Set guardrails, sample size and stopping rules before launch. |
 
-The model's average precision was 0.401 at a 3.24% holdout fraud rate. Average precision summarizes the model's ability to rank fraud cases ahead of legitimate transactions. Policy selection uses estimated cost and friction.
+At 25 review slots per day, probability ranking led dollar ranking by about **$31**. This backtest gives little evidence that dollar ranking improves decisions. At 100 slots, the modeled lift over score-only review comes from adding verification to the same review queue.
 
-## How policies route transactions
+### Calibration under drift
 
-- **Rules only** reviews the largest eligible transactions. Eligibility requires an online purchase of at least $150 or two prior transactions on the same card in the last hour.
-- **Score threshold** reviews the highest-risk transactions scoring at least 5%.
-- **Tiered probability** reviews eligible transactions in order of fraud probability. Transactions scoring at least 4% that miss review receive verification.
-- **Tiered dollars** uses the same tiers and ranks the review queue by fraud probability × amount.
+In the highest-scoring logistic regression decile, mean prediction and observed fraud moved from **0.68% vs. 0.71%** in validation to **0.76% vs. 1.14%** in holdout. Holdout average precision was **0.167** for logistic regression and **0.019** for histogram gradient boosting. The deciles are formed independently in each split. The divergence matters because dollar ranking multiplies risk by transaction amount.
 
-Rules-only and score-only overflow is approved. Each strategy uses the same daily cap and the same cost assumptions. The shared model thresholds were selected by minimizing tiered-dollar validation cost at 100 reviews per day, so the score-only baseline is a fixed-threshold benchmark. Daily ranking assumes a batch queue and can see all eligible transactions for that day.
+### Cost and uncertainty
 
-## Results files
-
-- [Policy results](results/policy_comparison.csv) across three review limits
-- [Verification sensitivity](results/sensitivity.csv) at 100 reviews per day
-- [Segment analysis](results/segments.csv) across the full synthetic dataset
-- [Model metrics and thresholds](results/metrics.json) for the reported run
+Total cost adds remaining fraud exposure, action costs, and assumed friction costs. The $3.44 crossover holds the action thresholds and all other assumptions fixed. Review and verification are assumed to prevent 90% and 65% of associated fraud dollars, respectively. The paired bootstrap resamples the same 25 holdout days for every policy and reports 10,000 replicates. Its intervals reflect day-to-day variability in this scenario and leave uncertainty in the synthetic generator and intervention assumptions outside the estimate. The queue is ranked in daily batches.

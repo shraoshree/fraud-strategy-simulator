@@ -65,6 +65,10 @@ def evaluate(actions, costs):
     return {
         "total_cost": residual + actions_cost + friction_cost,
         "fraud_prevented": prevented,
+        "fraud_exposure": fraud_amount.sum(),
+        "review_fraud_dollars": fraud_amount[review].sum(),
+        "verification_fraud_dollars": fraud_amount[verify].sum(),
+        "legitimate_challenged": int(legitimate_challenged),
         "residual_fraud": residual,
         "action_cost": actions_cost,
         "friction_cost": friction_cost,
@@ -77,10 +81,10 @@ def evaluate(actions, costs):
     }
 
 
-def compare(scored, capacity, review_threshold, verify_threshold, costs):
+def compare(scored, capacity, thresholds, costs):
     return pd.DataFrame([
         {"policy": policy, **evaluate(
-            decisions(scored, policy, capacity, review_threshold, verify_threshold), costs
+            decisions(scored, policy, capacity, *thresholds[policy]), costs
         )}
         for policy in POLICIES
     ]).sort_values("total_cost", ignore_index=True)

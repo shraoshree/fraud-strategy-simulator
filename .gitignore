@@ -2,3 +2,4 @@
 __pycache__/
 *.pyc
 results/scored.csv
+results/scored.csv.gz

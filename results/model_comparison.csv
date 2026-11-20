@@ -1,0 +1,5 @@
+model,split,fraud_rate,average_precision,brier_score
+Logistic regression,validation,0.00107328,0.14131672,0.00099843
+Logistic regression,holdout,0.00148431,0.16741808,0.00135929
+HistGradientBoosting,validation,0.00107328,0.01041319,0.00110457
+HistGradientBoosting,holdout,0.00148431,0.01937876,0.00149764

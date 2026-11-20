@@ -2,25 +2,21 @@
 
 ## Recommendation
 
-Pilot tiered review prioritized by estimated fraud dollars if verification works well enough and the business can accept roughly 76 challenged legitimate transactions per 1,000. Use score-only review as a fallback when verification produces little benefit or friction exceeds the agreed limit.
+Advance score-plus-verification to shadow evaluation. At 100 review slots, both tiered strategies produce the same actions and have an estimated cost of $30,836 versus $32,169 for score-only review. The paired 95% bootstrap range for savings crosses zero, and tiered verification adds about 6.08 legitimate challenges per 1,000. Measure verification effectiveness and customer friction before drawing a rollout conclusion.
 
-| Policy at 100 reviews per day | Estimated 25-day cost | Fraud dollars prevented | Legitimate challenges per 1,000 |
-|---|---:|---:|---:|
-| Rules only | $201,047 | $311,989 | 29.5 |
-| Score threshold | $166,993 | $345,314 | 23.4 |
-| Tiered probability | $126,473 | $394,737 | 75.6 |
-| Tiered dollars | $122,971 | $398,240 | 75.6 |
-
-The two tiered policies challenged the same set of transactions. Dollar ranking shifted reviews toward higher-dollar exposure and prevented an estimated $3,502 more fraud dollars under the fixed assumptions. The score-only policy challenged fewer legitimate transactions, at an estimated $44,022 higher total cost than tiered dollar ranking.
-
-## What changes the decision
-
-At 100 reviews per day, raising the extra cost per legitimate challenge from $2 to $20 makes score-only review the lowest-cost policy under the other baseline assumptions. Setting verification effectiveness to zero alone narrows the cost advantage over score-only review to about $3,705. Verification can prevent fraud in the simulator because it is assumed to stop a configurable share of associated fraud dollars. A manual review costs $4 and prevents an assumed 90% of associated fraud dollars. Verification costs $0.75 at baseline, and each legitimate challenge adds an assumed $2 of customer friction.
-
-Total cost is residual fraud dollars plus review cost, verification cost, and legitimate challenge cost. Fraud cases addressed counts flagged fraud cases, regardless of whether their associated dollars were prevented.
+At fixed action thresholds, the cost crossover is $3.44 per legitimate challenge. Both tiered policies are cheaper below that assumption, and score-only is cheaper above it. At 25 slots, probability ranking slightly outperformed dollar ranking. Start the pilot with probability ranking and reserve dollar ranking for evaluation if the queue binds and calibration is adequate.
 
 ## Pilot design
 
-Start with shadow scoring to measure queue utilization and challenge volume by channel and merchant category. Use mature fraud labels to measure losses. In a controlled pilot, measure verification completion, legitimate purchase abandonment, handling costs, and prevented fraud dollars. Set a customer friction limit before rollout and track peak queue demand. A real-time authorization workflow would need a queue pacing strategy because the simulation ranks transactions after the full day's candidates are available.
+Randomize eligible card accounts 1:1 so repeat purchases from a card stay in one arm. Compare score-only against score-plus-verification, run in parallel, and reserve separate review capacity by arm. Measure confirmed fraud incidence after a predeclared 60-day label maturation window. Report prevented fraud dollars and total estimated cost separately. Match the experiment eligibility definition to the denominator used in power estimates.
 
-Synthetic data imposes its own relationships between features and fraud. The reported savings measure the behavior of those assumptions. They cannot estimate savings for a real portfolio.
+For planning, a two-sided 5% test with 80% power needs **352,881 eligible transactions per arm** to detect a drop from 0.10% to 0.08% under independent observations. If the mean is five eligible transactions per card and within-card correlation is 0.02, the illustrative design effect is 1.08, or **381,112 per arm**. Estimate the design effect from shadow data and re-power if the eligible population's fraud rate differs. Use card-clustered analysis and allow for label delays and incomplete follow-up. Run `python pilot_power.py` to reproduce the unadjusted estimate.
+
+| Guardrail | Proposed stop limit vs. control |
+|---|---|
+| Approval rate | Drop greater than 0.5 percentage points |
+| Purchase abandonment among eligible transactions | Increase greater than 0.5 percentage points |
+| Fraud-policy complaints | Increase greater than 2 per 10,000 eligible transactions |
+| Manual-review queue | Reserved capacity exceeded or agreed service window missed on two consecutive days |
+
+Freeze these example limits and their denominators before randomization. Review operational guardrails daily. Pause exposure immediately on a verified severe incident, or when a guardrail exceeds its limit for two consecutive daily checks and both arms have at least 10,000 cumulative eligible transactions. Investigate before restarting. Assess efficacy once the powered sample is reached and labels mature. End the pilot at the preset maximum duration if enrollment falls short and label the efficacy result inconclusive. Predeclare the duration based on shadow traffic. Launch only if the primary effect supports improvement and guardrails remain within their limits.
