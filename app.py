@@ -20,7 +20,7 @@ def load_scenarios(filename):
 
 
 st.sidebar.header("Scenario")
-dataset = st.sidebar.radio("Dataset", ["Public ULB benchmark", "Synthetic sandbox"])
+dataset = st.sidebar.radio("Dataset", ["Synthetic sandbox", "Public ULB benchmark"])
 public = dataset == "Public ULB benchmark"
 if public:
     st.caption("Anonymized ULB card transactions · 20-hour holdout · Amounts in dataset currency units")
@@ -94,6 +94,13 @@ if public:
         st.write(
             "The ULB data has elapsed time, amount, and anonymized features. "
             "It has no card history, channels, or recorded intervention outcomes."
+        )
+        interval = metrics["matched_ranking_bootstrap"]
+        st.write(
+            f"At baseline assumptions and {metrics['reference_reviews_per_hour']} review slots per hour, "
+            f"the estimated matched ranking savings were {interval['estimated_savings']:,.0f} currency units "
+            f"(rough 95% interval {interval['low_95']:,.0f} to {interval['high_95']:,.0f}; "
+            f"{interval['hour_blocks']} paired hourly blocks)."
         )
         st.link_button("View the ULB source dataset", "https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud")
 else:

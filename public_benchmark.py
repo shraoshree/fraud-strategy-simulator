@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
@@ -27,6 +28,23 @@ def load_transactions(path):
     frame["hour"] = (frame["Time"] // 3600).astype(int)
     frame["log_amount"] = np.log1p(frame["amount"])
     return frame
+
+
+def paired_hourly_bootstrap(dollar_actions, probability_actions, costs):
+    """Resample matched hours to estimate the 20-hour ranking cost difference."""
+    dollar_hours = dollar_actions.groupby("day")
+    probability_hours = probability_actions.groupby("day")
+    differences = np.array([
+        evaluate(probability_hours.get_group(hour), costs)["total_cost"]
+        - evaluate(actions, costs)["total_cost"]
+        for hour, actions in dollar_hours
+    ])
+    draws = np.random.default_rng(42).integers(0, len(differences), (10_000, len(differences)))
+    low, high = np.quantile(differences[draws].sum(axis=1), [0.025, 0.975])
+    return {
+        "estimated_savings": float(differences.sum()), "low_95": float(low),
+        "high_95": float(high), "hour_blocks": len(differences), "replicates": len(draws),
+    }
 
 
 def benchmark(frame):
@@ -61,12 +79,18 @@ def benchmark(frame):
         ("Matched probability", "Tiered probability", thresholds["Tiered dollars"]),
     ]
     rows = []
+    reference = {}
     for capacity in CAPACITIES:
         for label, policy, pair in strategies:
             actions = decisions(holdout_queue, policy, capacity, *pair)
+            if capacity == REFERENCE_CAPACITY:
+                reference[label] = actions
             summary = evaluate(actions, costs)
             summary["reviews_per_hour"] = summary.pop("reviews_per_day")
             rows.append({"reviews_per_hour_cap": capacity, "policy": label, **summary})
+    no_verification_benefit = evaluate(
+        reference["Tiered dollars"], replace(costs, verification_effectiveness=0)
+    )
     metrics = {
         "transactions": len(frame), "fraud_cases": int(frame["is_fraud"].sum()),
         "training_transactions": len(train), "training_fraud_cases": int(train["is_fraud"].sum()),
@@ -76,6 +100,12 @@ def benchmark(frame):
         "holdout_average_precision": average_precision_score(holdout["is_fraud"], holdout["risk"]),
         "holdout_brier_score": brier_score_loss(holdout["is_fraud"], holdout["risk"]),
         "reference_reviews_per_hour": REFERENCE_CAPACITY, "validation_thresholds": thresholds,
+        "matched_ranking_bootstrap": paired_hourly_bootstrap(
+            reference["Tiered dollars"], reference["Matched probability"], costs
+        ),
+        "tiered_dollars_cost_at_zero_verification_effectiveness": float(
+            no_verification_benefit["total_cost"]
+        ),
     }
     return pd.DataFrame(rows), metrics
 

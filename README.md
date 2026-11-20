@@ -2,21 +2,27 @@
 
 [Open the live dashboard](https://shraoshree-fraud-strategy.streamlit.app/)
 
-## Public-data benchmark
-
-On the public ULB credit card dataset, the 20-hour holdout contained **130,863 transactions and 159 labeled fraud cases**. At **five reviews per hour**, tiered dollar ranking had **42.7% lower modeled cost** than score-only review and saved **2,282 currency units** over probability ranking with matched thresholds and the same challenge rate. The source provides fraud labels. Intervention costs and effectiveness still come from the simulator assumptions.
-
-[Read the dataset source, chronological split, and reproducibility steps](PUBLIC_BENCHMARK.md). The live dashboard opens on the public benchmark and offers the original synthetic sandbox as a separate view.
-
-## Synthetic policy sandbox
-
-**Verification drives the savings. Pilot it to measure whether the value of avoided fraud justifies the customer friction.** In the 100-slot reference scenario, the break-even cost is **$3.44 per legitimate challenge**.
+**Verification drives the savings. Pilot it to measure whether the value of avoided fraud justifies the customer friction.** In the 100-slot reference scenario, the break-even cost is **$3.44 per legitimate challenge**. [See what held up on public ULB data](#what-held-up-on-public-data).
 
 At the $2 baseline, tiered verification saves an estimated **$1,332** over score-only review and raises legitimate challenges from **2.47 to 8.56 per 1,000**. The paired 95% bootstrap interval is **−$59 to $2,805**. Both rankings produce the same actions in this reference scenario because eligible reviews peak at 39 per day.
 
 ![Estimated cost versus legitimate challenges at several daily review capacities](results/friction_tradeoff.png)
 
 The synthetic holdout contains **226 fraud cases in 152,259 transactions (0.148%)**. The generator targets a low-prevalence scenario and increases the incident rate in the holdout. These are scenario assumptions. Actual incidence, verification yield, and friction tolerance depend on the portfolio.
+
+## What held up on public data
+
+The ULB holdout has **130,863 anonymized transactions and 159 labeled fraud cases**. Logistic regression reached **0.55 average precision**, and the review queue stayed within the cap at every tested capacity. [See the public benchmark and reproduce the run](PUBLIC_BENCHMARK.md).
+
+| Finding | Synthetic sandbox | Public ULB |
+|---|---|---|
+| The model ranks fraud on a later holdout | AP 0.17 over 25 days | AP 0.55 over 20 hours. The models use different features. |
+| Verification lowers modeled cost | Yes, under assumed review and verification effectiveness | Yes when added to the same probability-ranked review queue at 65% assumed verification effectiveness. Actual effectiveness is unobserved. |
+| Dollar ranking improves on probability ranking | No clear winner across the binding capacities | At five reviews per hour, matched ranking saved 2,282 currency units. Rough hourly 95% interval: 1,122 to 3,580. |
+| The $3.44 break-even and card-history features | Estimated break-even and tested features in the sandbox | ULB lacks card IDs and intervention outcomes. It cannot validate the sandbox break-even. |
+
+At five reviews per hour, tiered dollar ranking was **42.7% cheaper in the cost model** than score-only review under the same assumed verification effectiveness. The dataset supplies fraud labels and amounts. The cost model supplies intervention outcomes.
+
 
 ## Run the dashboard
 

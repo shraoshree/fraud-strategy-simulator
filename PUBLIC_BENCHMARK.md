@@ -33,6 +33,10 @@ The simulator applies 2, 5, 10 and 15 reviews per elapsed hour. Review queues ar
 | Tiered dollars | 10,826 | 1.01 |
 | Matched probability | 13,108 | 1.01 |
 
-Tiered dollars reduced modeled cost by **42.7%** versus score-only review and by **2,282 currency units** versus probability ranking with the same thresholds. The matched comparison has the same challenge rate because ranking changes which challenged transactions get a review and which get verification. In the synthetic sandbox, the ranking winner changed as capacity tightened. Holdout length, currency, model inputs, thresholds and queue windows differ across the two scenarios. The public data contains no intervention outcomes and its 20-hour holdout provides a narrow test of operational performance.
+The model ranked labeled fraud on a later holdout, and peak reviews stayed within all four tested hourly limits. At five reviews per hour, each matched tiered policy challenged the same 111 labeled fraud cases and 132 legitimate transactions. Dollar ranking routed more of the observed fraud amount into manual review: 12,988 currency units versus 3,861 for probability ranking.
 
-See [metrics and file digest](results/public_metrics.json) and [all policy scenarios](results/public_policy_comparison.csv).
+Under 65% assumed verification effectiveness, tiered dollar ranking cost **42.7% less in the model** than score-only review. The comparison changes both the action set and the ranking. Adding verification to the same probability-ranked review queue cuts modeled cost by **5,773 currency units**. Changing to dollar ranking at those same tiered thresholds cuts a further **2,282 units**. Those effects depend on the order of the comparison. Dollar ranking leaves only 214 units of labeled fraud amount in the verification tier, so reducing verification effectiveness to zero adds only **139 units** to that policy's modeled cost with routing and other assumptions fixed.
+
+The **rough paired 95% bootstrap interval** for the matched ranking savings is **1,122 to 3,580 currency units**. It uses 10,000 draws of the 20 paired hourly blocks, with each hour's outcomes held together across the policies. The interval treats hours as exchangeable and holds the fitted model, thresholds and costs fixed. A single 20-hour window provides limited evidence about another portfolio or a longer operating period.
+
+See [metrics, bootstrap results and file digest](results/public_metrics.json) and [all policy scenarios](results/public_policy_comparison.csv).

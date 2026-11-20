@@ -26,5 +26,13 @@
       0.1
     ]
   },
+  "matched_ranking_bootstrap": {
+    "estimated_savings": 2281.705,
+    "low_95": 1122.3794374999995,
+    "high_95": 3579.7342499999995,
+    "hour_blocks": 20,
+    "replicates": 10000
+  },
+  "tiered_dollars_cost_at_zero_verification_effectiveness": 10965.322000000004,
   "source_sha256": "76274b691b16a6c49d3f159c883398e03ccd6d1ee12d9d8ee38f4b4b98551a89"
 }
