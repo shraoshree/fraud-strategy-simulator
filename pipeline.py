@@ -184,12 +184,22 @@ def main():
         compare(holdout, capacity, thresholds, costs).assign(capacity=capacity)
         for capacity in (10, 15, 20, 25, BASE_CAPACITY)
     ], ignore_index=True)
-    actions = {
-        policy: decisions(holdout, policy, BASE_CAPACITY, *thresholds.get(policy, ())) for policy in POLICIES
-    }
-    actions["Matched probability"] = decisions(
-        holdout, "Tiered probability", BASE_CAPACITY, *thresholds["Tiered dollars"]
-    )
+    def actions_at_capacity(capacity):
+        actions = {
+            policy: decisions(holdout, policy, capacity, *thresholds.get(policy, ()))
+            for policy in POLICIES
+        }
+        actions["Matched probability"] = decisions(
+            holdout, "Tiered probability", capacity, *thresholds["Tiered dollars"]
+        )
+        return actions
+
+    actions = actions_at_capacity(BASE_CAPACITY)
+    intervals = [
+        bootstrap(actions_at_capacity(capacity), costs).assign(capacity=capacity)
+        for capacity in (10, 15, 20, 25)
+    ]
+    intervals.append(bootstrap(actions, costs).assign(capacity=BASE_CAPACITY))
     with sqlite3.connect(":memory:") as db:
         pd.concat([
             frame[["day", "action", "is_fraud"]].assign(policy=policy)
@@ -208,7 +218,7 @@ def main():
     reports = {
         "segments": segments, "policy_comparison": comparison, "sensitivity": sensitivity,
         "model_comparison": models, "calibration": calibration, "daily_monitoring": monitoring,
-        "bootstrap": bootstrap(actions, costs),
+        "bootstrap": pd.concat(intervals, ignore_index=True),
     }
     for name, report in reports.items():
         report.round(8).to_csv(RESULTS / f"{name}.csv", index=False)
@@ -221,7 +231,7 @@ def main():
     (RESULTS / "metrics.json").write_text(json.dumps(metrics, indent=2) + "\n")
     scenarios = pd.concat([
         compare(holdout, capacity, thresholds, costs).assign(capacity=capacity)
-        for capacity in range(0, 251, 5)
+        for capacity in range(0, 51, 5)
     ], ignore_index=True)
     scenarios.round(8).to_csv(RESULTS / "dashboard_scenarios.csv", index=False)
     binding = comparison.loc[comparison["capacity"].ne(BASE_CAPACITY)]

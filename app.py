@@ -20,7 +20,7 @@ def load_scenarios():
 
 st.caption("Synthetic 25-day holdout · Four policies with validation-tuned thresholds")
 st.sidebar.header("Scenario")
-capacity = st.sidebar.slider("Maximum reviews per day", 0, 250, 100, 5)
+capacity = st.sidebar.slider("Maximum reviews per day", 0, 50, 25, 5)
 st.sidebar.caption("Try 10, 15, 20, or 25 slots to see the ranking tradeoff when the queue fills.")
 fee = st.sidebar.slider("Verification cost per transaction ($)", 0.0, 8.0, 0.75, 0.25)
 effectiveness = st.sidebar.slider("Fraud dollars prevented by verification (%)", 0, 100, 65, 5)
@@ -71,5 +71,5 @@ with st.expander("Model calibration and uncertainty"):
     calibration = pd.read_csv(RESULTS / "calibration.csv")
     st.write("Highest score decile")
     st.dataframe(calibration.loc[calibration["decile"].eq(10)].round(5), hide_index=True)
-    st.write("Paired daily bootstrap at the baseline assumptions and 100 reviews per day")
+    st.write("Paired daily bootstrap at baseline costs and effectiveness")
     st.dataframe(pd.read_csv(RESULTS / "bootstrap.csv").round(2), hide_index=True)

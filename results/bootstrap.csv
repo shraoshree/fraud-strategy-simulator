@@ -1,4 +1,16 @@
-comparator,savings,low_95,high_95
-Score threshold,1332.235,-59.3125625,2804.6952625
-Tiered probability,0.0,0.0,0.0
-Matched probability,0.0,0.0,0.0
+comparator,savings,low_95,high_95,capacity
+Score threshold,3378.425,1540.5921125,5306.9045625,10
+Tiered probability,54.7225,-165.562625,332.65225,10
+Matched probability,54.7225,-165.562625,332.65225,10
+Score threshold,2376.6265,534.6659625,4423.3228625,15
+Tiered probability,191.935,-153.415,599.9130625,15
+Matched probability,191.935,-153.415,599.9130625,15
+Score threshold,1270.467,-101.944,2725.0455875,20
+Tiered probability,-53.95,-119.65,0.0,20
+Matched probability,-53.95,-119.65,0.0,20
+Score threshold,1273.1975,-139.3228375,2761.1063875,25
+Tiered probability,-31.0525,-93.1575,0.0,25
+Matched probability,-31.0525,-93.1575,0.0,25
+Score threshold,1332.235,-59.3125625,2804.6952625,100
+Tiered probability,0.0,0.0,0.0,100
+Matched probability,0.0,0.0,0.0,100

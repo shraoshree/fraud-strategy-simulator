@@ -34,14 +34,16 @@ The app uses committed aggregate scenario results and starts without model train
 
 ### What changes when capacity actually binds
 
-Each limit below is reached on at least one day for both tiered policies. Thresholds stay fixed so the comparison isolates the effect of changing review capacity. The ranking winner changes, and the cost differences between the two tiered policies are small.
+Each limit below is reached on at least one day for both tiered policies. Thresholds stay fixed so the comparison isolates the effect of changing review capacity. The ranking winner changes across limits. Every paired 95% interval includes zero, so the holdout gives no clear evidence that one ranking consistently saves more.
 
-| Daily review slots | Lower-cost tiered ranking | Average daily reviews | Estimated cost advantage over the other ranking |
-|---:|---|---:|---:|
-| 10 | Estimated dollars | 9.80 | $55 |
-| 15 | Estimated dollars | 13.84 | $192 |
-| 20 | Fraud probability | 16.56 | $54 |
-| 25 | Fraud probability | 17.48 | $31 |
+| Daily review slots | Average daily reviews | Estimated savings from dollar ranking | Paired 95% interval |
+|---:|---:|---:|---:|
+| 10 | 9.80 | $55 | −$166 to $333 |
+| 15 | 13.84 | $192 | −$153 to $600 |
+| 20 | 16.56 | −$54 | −$120 to $0 |
+| 25 | 17.48 | −$31 | −$93 to $0 |
+
+Savings are probability-ranking cost minus dollar-ranking cost. The live dashboard opens at 25 daily slots and lets you explore 0–50. The 100-slot reference remains in the published results.
 
 [View estimated cost by review capacity](results/capacity.png).
 
