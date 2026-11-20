@@ -1,5 +1,7 @@
 # Credit Card Fraud Strategy Simulator
 
+[Open the live dashboard](https://shraoshree-fraud-strategy.streamlit.app/)
+
 **At 100 review slots per day, tiered verification is cheaper below about $3.44 per legitimate challenge. Above $3.44, score-only review is cheaper.** At the $2 baseline, tiered review with verification saves an estimated **$1,332** versus score-only review, while raising legitimate challenges from **2.47 to 8.56 per 1,000**. The paired 95% bootstrap range is **−$59 to $2,805**. Dollar and probability ranking tie at this capacity because eligible reviews peak at 39 per day.
 
 ![Estimated cost versus legitimate challenges at several daily review capacities](results/friction_tradeoff.png)
