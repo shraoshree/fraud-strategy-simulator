@@ -1,0 +1,11 @@
+{
+  "train_end_exclusive": "2025-02-20",
+  "test_start_inclusive": "2025-03-07",
+  "holdout_transactions": 61716,
+  "holdout_fraud_cases": 1999,
+  "holdout_fraud_rate": 0.032390303973037785,
+  "average_precision": 0.4008450419938701,
+  "brier_score": 0.024444735200364404,
+  "review_threshold": 0.05,
+  "verify_threshold": 0.04
+}
