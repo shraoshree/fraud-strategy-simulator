@@ -2,6 +2,14 @@
 
 [Open the live dashboard](https://shraoshree-fraud-strategy.streamlit.app/)
 
+## Public-data benchmark
+
+On the public ULB credit card dataset, the 20-hour holdout contained **130,863 transactions and 159 labeled fraud cases**. At **five reviews per hour**, tiered dollar ranking had **42.7% lower modeled cost** than score-only review and saved **2,282 currency units** over probability ranking with matched thresholds and the same challenge rate. The source provides fraud labels. Intervention costs and effectiveness still come from the simulator assumptions.
+
+[Read the dataset source, chronological split, and reproducibility steps](PUBLIC_BENCHMARK.md). The live dashboard opens on the public benchmark and offers the original synthetic sandbox as a separate view.
+
+## Synthetic policy sandbox
+
 **Verification drives the savings. Pilot it to measure whether the value of avoided fraud justifies the customer friction.** In the 100-slot reference scenario, the break-even cost is **$3.44 per legitimate challenge**.
 
 At the $2 baseline, tiered verification saves an estimated **$1,332** over score-only review and raises legitimate challenges from **2.47 to 8.56 per 1,000**. The paired 95% bootstrap interval is **−$59 to $2,805**. Both rankings produce the same actions in this reference scenario because eligible reviews peak at 39 per day.
@@ -43,7 +51,7 @@ Each limit below is reached on at least one day for both tiered policies. Thresh
 | 20 | 16.56 | −$54 | −$120 to $0 |
 | 25 | 17.48 | −$31 | −$93 to $0 |
 
-Savings are probability-ranking cost minus dollar-ranking cost. The live dashboard opens at 25 daily slots and lets you explore 0–50. The 100-slot reference remains in the published results.
+Savings are probability-ranking cost minus dollar-ranking cost. The synthetic dashboard view opens at 25 daily slots and lets you explore 0–50. The 100-slot reference remains in the published results.
 
 [View estimated cost by review capacity](results/capacity.png).
 

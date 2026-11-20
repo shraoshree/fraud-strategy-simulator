@@ -1,0 +1,30 @@
+{
+  "transactions": 284807,
+  "fraud_cases": 492,
+  "training_transactions": 110852,
+  "training_fraud_cases": 239,
+  "validation_transactions": 43092,
+  "validation_fraud_cases": 94,
+  "holdout_transactions": 130863,
+  "holdout_fraud_cases": 159,
+  "holdout_hours": 20,
+  "holdout_fraud_rate": 0.0012150111184979712,
+  "holdout_average_precision": 0.5503752098696396,
+  "holdout_brier_score": 0.000835677073317886,
+  "reference_reviews_per_hour": 5,
+  "validation_thresholds": {
+    "Score threshold": [
+      0.1,
+      0.1
+    ],
+    "Tiered probability": [
+      0.25,
+      0.1
+    ],
+    "Tiered dollars": [
+      0.1,
+      0.1
+    ]
+  },
+  "source_sha256": "76274b691b16a6c49d3f159c883398e03ccd6d1ee12d9d8ee38f4b4b98551a89"
+}
